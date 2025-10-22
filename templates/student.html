@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Records | MIT-WPU</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #1F2937;
+      --accent-color: #2a2b2d;
+      --text-light: #ffffff;
+      --text-dark: #333333;
+    }
+
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Navbar */
+    .navbar {
+      background-color: var(--primary-color);
+      padding: 0.8rem 1rem;
+    }
+
+    .navbar-brand img {
+      height: 40px;
+      margin-right: 10px;
+    }
+
+    .nav-link {
+      color: var(--text-light) !important;
+      transition: color 0.3s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--accent-color) !important;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--primary-color);
+      font-weight: 700;
+      margin-top: 30px;
+      margin-bottom: 20px;
+    }
+
+    .section-card {
+      background-color: #ffffff;
+      border-radius: 10px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .form-control {
+      margin-bottom: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-color);
+      border-color: var(--accent-color);
+    }
+
+    .btn-primary:hover {
+      background-color: #1e6fe0;
+      border-color: #1e6fe0;
+    }
+
+    .total-students {
+      text-align: center;
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--primary-color);
+      margin: 20px 0;
+    }
+
+    /* Table */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      background-color: #fff;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    th {
+      background-color: var(--primary-color);
+      color: #fff;
+      text-align: center;
+      padding: 12px;
+    }
+
+    td {
+      text-align: center;
+      padding: 12px;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    tr:hover {
+      background-color: #e8f0fe;
+    }
+
+    .table-responsive {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="/">
+      <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo">
+      MIT-WPU Registration
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="/">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/student">Students</a></li>
+        <li class="nav-item"><a class="nav-link" href="/courses">Courses</a></li>
+        <li class="nav-item"><a class="nav-link" href="/professor">Professors</a></li>
+        <li class="nav-item"><a class="nav-link" href="/department">Departments</a></li>
+        <li class="nav-item"><a class="nav-link" href="/enrollments">Enrollments</a></li>
+        <li class="nav-item"><a class="nav-link" href="/semester">Semesters</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Title -->
+<h1>Student Records</h1>
+
+<div class="container">
+  <!-- Search Student -->
+  <div class="section-card">
+    <h4 class="mb-3 text-primary"><i class="bi bi-search"></i> Search Student</h4>
+    <form method="POST" action="/student" class="row g-3 justify-content-center">
+      <div class="col-md-4 col-sm-8">
+        <input type="text" name="search_name" class="form-control" placeholder="Enter student name..." required>
+      </div>
+      <div class="col-md-auto">
+        <button type="submit" class="btn btn-primary">Search</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Add Student -->
+  <div class="section-card">
+    <h4 class="mb-3 text-primary"><i class="bi bi-person-plus-fill"></i> Add Student</h4>
+    <form method="POST" action="/add_student" class="row g-3">
+      <div class="col-md-3"><input type="number" name="prn" class="form-control" placeholder="PRN" required></div>
+      <div class="col-md-3"><input type="text" name="name" class="form-control" placeholder="Name" required></div>
+      <div class="col-md-3"><input type="email" name="email" class="form-control" placeholder="Email" required></div>
+      <div class="col-md-3"><input type="number" step="0.01" name="gpa" class="form-control" placeholder="GPA"></div>
+      <div class="col-md-3"><input type="number" name="year" class="form-control" placeholder="Year"></div>
+      <div class="col-md-3"><input type="text" name="panel" class="form-control" placeholder="Panel"></div>
+      <div class="col-md-3"><input type="text" name="mobile_no" class="form-control" placeholder="Mobile"></div>
+      <div class="col-md-3"><input type="text" name="blood_group" class="form-control" placeholder="Blood Group"></div>
+      <div class="col-md-3"><input type="text" name="branch" class="form-control" placeholder="Branch"></div>
+      <div class="col-12 text-center">
+        <button type="submit" class="btn btn-primary mt-2">Add Student</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Delete Student -->
+  <div class="section-card">
+    <h4 class="mb-3 text-danger"><i class="bi bi-trash-fill"></i> Delete Student</h4>
+    <form method="POST" action="/delete_student" class="row g-3 justify-content-center">
+      <div class="col-md-4 col-sm-8">
+        <input type="number" name="prn" class="form-control" placeholder="PRN to Delete" required>
+      </div>
+      <div class="col-md-auto">
+        <button type="submit" class="btn btn-danger">Delete</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Total Students -->
+  <div class="total-students">
+    <strong>Total Students: {{ student_count }}</strong>
+  </div>
+
+  <!-- Student Table -->
+  <div class="table-responsive section-card">
+    <table class="table table-bordered align-middle">
+      <thead>
+        <tr>
+          <th>PRN</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>GPA</th>
+          <th>Year</th>
+          <th>Panel</th>
+          <th>Mobile</th>
+          <th>Blood Group</th>
+          <th>Branch</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if users %}
+          {% for row in users %}
+          <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+            <td>{{ row[3] }}</td>
+            <td>{{ row[4] }}</td>
+            <td>{{ row[5] }}</td>
+            <td>{{ row[6] }}</td>
+            <td>{{ row[7] }}</td>
+            <td>{{ row[8] }}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="9" class="text-center text-muted">No records found</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<footer class="mt-5 text-center py-3" style="background-color: var(--primary-color); color: white;">
+  © 2025 MIT-WPU | All Rights Reserved
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

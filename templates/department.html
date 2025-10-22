@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Department Records</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding-top: 70px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    .search-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      width: 250px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    input[type="submit"] {
+      padding: 10px 20px;
+      border: none;
+      background-color: #0a0a0a;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    input[type="submit"]:hover {
+      background-color: #070808;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 70%;
+      margin: auto;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #18191a;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    tr:hover {
+      background-color: #e2e2e2;
+    }
+
+    footer {
+      background-color: #18191a;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+     
+      bottom: 0;
+      width: 100%;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+    }
+
+    .navbar-brand img {
+      height: 30px;
+      margin-right: 10px;
+    }
+
+    .nav-link.active {
+      font-weight: bold;
+      color: #C9A227 !important;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="/">
+      <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo">
+      MIT-WPU UNIVERSITY
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="/">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="/student">Students</a></li>
+        <li class="nav-item"><a class="nav-link" href="/courses">Courses</a></li>
+        <li class="nav-item"><a class="nav-link" href="/professor">Professors</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/department">Departments</a></li>
+        <li class="nav-item"><a class="nav-link" href="/enrollments">Enrollments</a></li>
+        <li class="nav-item"><a class="nav-link" href="/semester">Semesters</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Page Content -->
+<h1>Department Records</h1>
+
+<div class="search-container">
+  <form method="POST" action="/department">
+    <input type="text" name="search_name" placeholder="Enter department name..." required>
+    <input type="submit" value="Search">
+  </form>
+</div>
+
+<table>
+  <tr>
+    <th>Department ID</th>
+    <th>Name</th>
+    <th>Head Professor</th>
+  </tr>
+  {% if departments %}
+    {% for row in departments %}
+    <tr>
+      <td>{{ row[0] }}</td>
+      <td>{{ row[1] }}</td>
+      <td>{{ row[2] if row[2] else 'Not Assigned' }}</td>
+    </tr>
+    {% endfor %}
+  {% else %}
+    <tr>
+      <td colspan="3">No records found</td>
+    </tr>
+  {% endif %}
+</table>
+
+<!-- Footer -->
+<footer>
+  <div class="left">© 2025 MIT-WPU</div>
+  <div class="right">All Rights Reserved</div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

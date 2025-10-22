@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Course Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    /* Override the default Bootstrap danger button (red) */
+    .btn-danger-custom {
+      background-color: #e76f51; /* Muted red / soft orange */
+      border-color: #e76f51;
+      color: white;
+    }
+
+    .btn-danger-custom:hover {
+      background-color: #d65a3a;
+      border-color: #d65a3a;
+      color: white;
+    }
+
+    /* Navbar custom black/white theme */
+    nav.navbar {
+      background-color: #000000 !important;
+    }
+    nav.navbar .navbar-brand,
+    nav.navbar .nav-link {
+      color: #cfcbcb !important;
+      font-weight: 600;
+    }
+    nav.navbar .nav-link.active {
+      color: #d3d3d3 !important;
+      font-weight: 700;
+      text-decoration: underline;
+    }
+    nav.navbar .navbar-toggler {
+      border-color: #ffffff;
+    }
+   
+    nav.navbar .navbar-toggler-icon {
+      filter: invert(100%);
+    }
+
+    /* Footer styling for left/right alignment */
+    footer {
+      background-color: #000000;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+      user-select: none;
+      margin-top: 3rem;
+      box-shadow: 0 -2px 10px rgba(255,255,255,0.1);
+    }
+    footer .left,
+    footer .right {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="/">
+      <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo" style="height:30px; margin-right: 10px;">
+      MIT-WPU UNIVERSITY
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="/">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/student">Students</a></li>
+        <li class="nav-item"><a class="nav-link" href="/courses">Courses</a></li>
+        <li class="nav-item"><a class="nav-link" href="/professor">Professors</a></li>
+        <li class="nav-item"><a class="nav-link" href="/department">Departments</a></li>
+        <li class="nav-item"><a class="nav-link" href="/enrollments">Enrollments</a></li>
+        <li class="nav-item"><a class="nav-link" href="/semester">Semesters</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-5">
+  <h2 class="text-center mb-4">Course Management</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <!-- Add Course Button -->
+  <div class="mb-3 text-end">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">+ Add Course</button>
+  </div>
+
+  <!-- Courses Table -->
+  <table class="table table-bordered">
+    <thead class="table-dark">
+      <tr>
+        <th>Course ID</th>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Department ID</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for course in courses %}
+        <tr>
+          <td>{{ course.course_id }}</td>
+          <td>{{ course.title }}</td>
+          <td>{{ course.description }}</td>
+          <td>{{ course.dep_id }}</td>
+          <td>
+            <!-- Use custom danger button -->
+            <a href="{{ url_for('delete_course', course_id=course.course_id) }}" class="btn btn-danger-custom btn-sm">Delete</a>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="text-center">No courses found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Add Course Modal -->
+<div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ url_for('courses') }}">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addCourseLabel">Add New Course</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label>Course ID</label>
+            <input type="number" name="course_id" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>Title</label>
+            <input type="text" name="title" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label>Description</label>
+            <textarea name="description" class="form-control"></textarea>
+          </div>
+          <div class="mb-3">
+            <label>Department ID</label>
+            <input type="number" name="dep_id" class="form-control">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Add Course</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<footer>
+  <div class="left">© 2025 MIT-WPU</div>
+  <div class="right">All Rights Reserved</div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MIT-WPU Registration System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #1F2937;
+      --accent-color: #262525;
+      --text-light: #ffffff;
+      --text-dark: #333333;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .navbar {
+      background-color: var(--primary-color);
+      padding: 0.8rem 1rem;
+    }
+
+    .navbar-brand {
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .navbar-brand img {
+      height: 40px;
+      margin-right: 10px;
+    }
+
+    .nav-link {
+      color: var(--text-light) !important;
+      margin: 0 8px;
+      transition: color 0.3s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--accent-color) !important;
+    }
+
+    /* Hero Section */
+    .hero {
+      background: url("{{ url_for('static', filename='MIT-WPU.png') }}") center/cover no-repeat;
+      position: relative;
+      padding: 140px 0;
+      color: white;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom right, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6));
+    }
+
+    .hero .container {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero h1 {
+      font-weight: 700;
+      font-size: 2.8rem;
+      margin-bottom: 15px;
+      animation: fadeInDown 1s ease-in-out;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      animation: fadeInUp 1.2s ease-in-out;
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Dashboard Cards */
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      transition: all 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .card-title {
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-color);
+      border-color: var(--accent-color);
+    }
+
+    .btn-primary:hover {
+      background-color: #234669;
+      border-color: #1e6fe0;
+    }
+
+    /* Footer */
+    footer {
+      background-color: var(--primary-color);
+      color: var(--text-light);
+      padding: 20px 0;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .footer-icons a {
+      color: var(--text-light);
+      margin: 0 10px;
+      font-size: 1.2rem;
+      transition: color 0.3s;
+    }
+
+    .footer-icons a:hover {
+      color: var(--accent-color);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="#">
+      <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo">
+      MIT-WPU UNIVERSITY
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="#dashboard">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="/student">Students</a></li>
+        <li class="nav-item"><a class="nav-link" href="/courses">Courses</a></li>
+        <li class="nav-item"><a class="nav-link" href="/professor">Professors</a></li>
+        <li class="nav-item"><a class="nav-link" href="/department">Departments</a></li>
+        <li class="nav-item"><a class="nav-link" href="/enrollments">Enrollments</a></li>
+        <li class="nav-item"><a class="nav-link" href="/semester">Semesters</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero text-center">
+  <div class="container">
+    <h1>Welcome to MIT-WPU Registration System</h1>
+    <p>Manage students, courses, professors, and academic operations efficiently in one platform.</p>
+    <a href="#dashboard" class="btn btn-lg btn-primary mt-4">Explore Dashboard</a>
+  </div>
+</section>
+
+<!-- Dashboard -->
+<div class="container my-5" id="dashboard">
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for item in [
+      {'title': 'Students', 'icon': 'bi-person-lines-fill', 'text': 'View, add, or manage student records.', 'link': '/student'},
+      {'title': 'Courses', 'icon': 'bi-journal-bookmark-fill', 'text': 'Manage courses and curriculum details.', 'link': '/courses'},
+      {'title': 'Professors', 'icon': 'bi-person-badge-fill', 'text': 'Assign courses and manage faculty profiles.', 'link': '/professor'},
+      {'title': 'Departments', 'icon': 'bi-building', 'text': 'Organize departments and programs.', 'link': '/department'},
+      {'title': 'Enrollments', 'icon': 'bi-card-checklist', 'text': 'Track student course registrations.', 'link': '/enrollments'},
+      {'title': 'Semesters', 'icon': 'bi-calendar-week', 'text': 'Manage semesters, schedules, and sessions.', 'link': '/semester'}
+    ] %}
+    <div class="col">
+      <div class="card h-100 text-center p-4">
+        <div class="card-body">
+          <div class="mb-3">
+            <i class="{{ item.icon }} fs-2 text-primary"></i>
+          </div>
+          <h5 class="card-title">{{ item.title }}</h5>
+          <p class="card-text">{{ item.text }}</p>
+          <a href="{{ item.link }}" class="btn btn-primary">Go to {{ item.title }}</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <p>© 2025 MIT-WPU | All Rights Reserved</p>
+    <div class="footer-icons">
+      <a href="https://www.facebook.com/MITWPUOfficial/"><i class="bi bi-facebook"></i></a>
+      <a href="https://x.com/MitWpu"><i class="bi bi-twitter"></i></a>
+      <a href="https://in.linkedin.com/school/mitwpuofficial/"><i class="bi bi-linkedin"></i></a>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

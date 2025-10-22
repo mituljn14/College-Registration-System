@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Enrollment Records</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #fff;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #000;
+        }
+
+        /* Container with white background */
+        .container {
+            flex-grow: 1;
+            max-width: 1000px;
+            margin: 30px auto 70px;
+            padding: 20px 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            color: #000;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 700;
+            font-size: 2.5rem;
+            user-select: none;
+        }
+
+        /* Search container */
+        .search-container {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        input[type="number"] {
+            padding: 12px 18px;
+            width: 250px;
+            border: 1px solid #000;
+            border-radius: 6px 0 0 6px;
+            outline: none;
+            font-size: 1rem;
+            background-color: #fff;
+            color: #000;
+            transition: box-shadow 0.3s ease;
+        }
+        input[type="number"]::placeholder {
+            color: #666;
+        }
+        input[type="number"]:focus {
+            box-shadow: 0 0 8px #000;
+            background-color: #fff;
+            color: #000;
+        }
+
+        input[type="submit"] {
+            padding: 12px 30px;
+            border: 1px solid #000;
+            background: #fff;
+            color: #000;
+            font-weight: 700;
+            border-radius: 0 6px 6px 0;
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            font-size: 1rem;
+            user-select: none;
+        }
+        input[type="submit"]:hover {
+            background-color: #000;
+            color: #fff;
+            border: 1px solid #000;
+        }
+
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            color: #000;
+        }
+
+        th, td {
+            padding: 14px 15px;
+            text-align: center;
+            border-bottom: 1px solid #ccc;
+            user-select: text;
+            color: #000;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        tbody tr:hover {
+            background-color: #e0e0e0;
+            cursor: default;
+            font-weight: 600;
+        }
+
+        tbody tr td:first-child {
+            font-weight: 700;
+        }
+
+        /* No records found */
+        td[colspan="5"] {
+            padding: 25px 0;
+            font-style: italic;
+            color: #666;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #111111;
+            color: #fff;
+            text-align: center;
+            padding: 18px 10px;
+            font-size: 0.9rem;
+            user-select: none;
+            box-shadow: 0 -2px 10px rgba(255,255,255,0.1);
+            
+            bottom: 0;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        footer a {
+            color: #fff;
+            text-decoration: underline;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: #bbb;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            input[type="number"] {
+                width: 150px;
+                margin-bottom: 10px;
+                border-radius: 6px;
+            }
+
+            input[type="submit"] {
+                width: 100%;
+                border-radius: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar: Bootstrap with logo -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="/">
+      <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo" style="height: 40px; margin-right: 10px;">
+      MIT-WPU Registration
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="/">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/student">Students</a></li>
+        <li class="nav-item"><a class="nav-link" href="/courses">Courses</a></li>
+        <li class="nav-item"><a class="nav-link" href="/professor">Professors</a></li>
+        <li class="nav-item"><a class="nav-link" href="/department">Departments</a></li>
+        <li class="nav-item"><a class="nav-link" href="/enrollments">Enrollments</a></li>
+        <li class="nav-item"><a class="nav-link" href="/semester">Semesters</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container">
+    <h1>Enrollment Records</h1>
+
+    <div class="search-container">
+        <form method="POST">
+            <input type="number" name="search_prn" placeholder="Enter PRN" required />
+            <input type="submit" value="Search" />
+        </form>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Enrollment ID</th>
+                <th>PRN</th>
+                <th>Student Name</th>
+                <th>Course Title</th>
+                <th>Enroll Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if enrollments %}
+                {% for row in enrollments %}
+                <tr>
+                    <td>{{ row[0] }}</td>
+                    <td>{{ row[1] }}</td>
+                    <td>{{ row[2] }}</td>
+                    <td>{{ row[3] }}</td>
+                    <td>{{ row[4] }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="5">No records found</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<footer>
+  © 2025 MIT-WPU | All Rights Reserved
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
