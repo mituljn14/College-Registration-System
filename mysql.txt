@@ -1,0 +1,205 @@
+CREATE DATABASE IF NOT EXISTS student;
+USE student;
+CREATE TABLE student (
+    prn INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100),
+    gpa DECIMAL(3,2),
+    year INT,
+    panel VARCHAR(100),
+    mobile_no VARCHAR(15),
+    blood_group VARCHAR(5),
+    branch VARCHAR(100)
+);
+CREATE TABLE department (
+    dep_id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    professor_id INT,
+    FOREIGN KEY (professor_id) REFERENCES professor(professor_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+);
+CREATE TABLE professor (
+    professor_id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100),
+    department VARCHAR(100),
+    phone VARCHAR(20)
+);
+CREATE TABLE course (
+    course_id INT PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    dep_id INT,
+    FOREIGN KEY (dep_id) REFERENCES department(dep_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+);
+CREATE TABLE semester (
+    sem_id INT PRIMARY KEY,
+    sem_number INT NOT NULL,
+    start_date DATE,
+    end_date DATE,
+    branch_name VARCHAR(100)
+);
+CREATE TABLE enrollment (
+    enrollment_id INT AUTO_INCREMENT PRIMARY KEY,
+    prn INT,
+    course_id INT,
+    enroll_date DATE DEFAULT (CURRENT_DATE),
+    FOREIGN KEY (prn) REFERENCES student(prn)
+        ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES course(course_id)
+        ON DELETE CASCADE
+);
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) UNIQUE,
+    password VARCHAR(100)
+);
+
+-- Insert sample admin user
+INSERT INTO users (username, password)
+VALUES ('admin', 'admin123');
+
+
+DELIMITER //
+CREATE PROCEDURE InsertStudent (
+    IN p_prn INT,
+    IN p_name VARCHAR(100),
+    IN p_email VARCHAR(100),
+    IN p_gpa DECIMAL(3,2),
+    IN p_year INT,
+    IN p_panel VARCHAR(100),
+    IN p_mobile_no VARCHAR(15),
+    IN p_blood_group VARCHAR(5),
+    IN p_branch VARCHAR(100)
+)
+BEGIN
+    INSERT INTO student (prn, name, email, gpa, year, panel, mobile_no, blood_group, branch)
+    VALUES (p_prn, p_name, p_email, p_gpa, p_year, p_panel, p_mobile_no, p_blood_group, p_branch);
+END //
+DELIMITER ;
+DELIMITER //
+CREATE PROCEDURE DeleteStudent (IN p_prn INT)
+BEGIN
+    DELETE FROM student WHERE prn = p_prn;
+END //
+DELIMITER ;
+
+
+
+DELIMITER //
+CREATE PROCEDURE InsertCourse (
+    IN p_course_id INT,
+    IN p_title VARCHAR(100),
+    IN p_description TEXT,
+    IN p_dep_id INT
+)
+BEGIN
+    INSERT INTO course (course_id, title, description, dep_id)
+    VALUES (p_course_id, p_title, p_description, p_dep_id);
+END //
+DELIMITER ;
+
+INSERT INTO professor VALUES
+(1, 'Dr. Mehta', 'mehta@uni.edu', 'Computer Science', '9998877766'),
+(2, 'Dr. Sharma', 'sharma@uni.edu', 'Mechanical', '9991122233');
+
+INSERT INTO department VALUES
+(1, 'Computer Science', 1),
+(2, 'Mechanical', 2);
+
+INSERT INTO student VALUES
+(1001, 'Amit Patel', 'amit@uni.edu', 8.5, 3, 'Alpha', '9876543210', 'O+', 'CSE'),
+(1002, 'Riya Singh', 'riya@uni.edu', 8.8, 2, 'Beta', '9876501234', 'A+', 'IT');
+
+INSERT INTO course VALUES
+(101, 'DBMS', 'Database Systems', 1),
+(102, 'Thermodynamics', 'Heat and Energy', 2);
+
+INSERT INTO semester VALUES
+(1, 1, '2025-01-01', '2025-06-30', 'CSE'),
+(2, 2, '2025-07-01', '2025-12-31', 'CSE');
+
+INSERT INTO enrollment (prn, course_id) VALUES
+(1001, 101),
+(1002, 102);
+
+mysql> ALTER TABLE student
+    -> ADD COLUMN attendance_percentage DECIMAL(5,2) DEFAULT 0;
+Query OK, 0 rows affected (0.582 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql> DELIMITER $$
+mysql>
+mysql> CREATE TRIGGER trg_update_attendance_percentage
+    -> AFTER INSERT ON attendance_record
+    -> FOR EACH ROW
+    -> BEGIN
+    ->     DECLARE total_sessions INT;
+    ->     DECLARE attended_sessions INT;
+    ->     DECLARE percentage DECIMAL(5,2);
+    ->
+    ->     -- total sessions for this student
+    ->     SELECT COUNT(*) INTO total_sessions
+    ->     FROM attendance_record
+    ->     WHERE prn = NEW.prn;
+    ->
+    ->     -- total sessions attended
+    ->     SELECT COUNT(*) INTO attended_sessions
+    ->     FROM attendance_record
+    ->     WHERE prn = NEW.prn AND status = 'Present';
+    ->
+    ->     -- calculate attendance %
+    ->     IF total_sessions = 0 THEN
+    ->         SET percentage = 0;
+    ->     ELSE
+    ->         SET percentage = (attended_sessions / total_sessions) * 100;
+    ->     END IF;
+    ->
+    ->     -- update student table
+    ->     UPDATE student
+    ->     SET attendance_percentage = percentage
+    ->     WHERE prn = NEW.prn;
+    -> END$$
+Query OK, 0 rows affected (0.333 sec)
+
+mysql>
+mysql> DELIMITER ;
+
+
+> DESC TEACHES;
++--------------+------+------+-----+---------+----------------+
+| Field        | Type | Null | Key | Default | Extra          |
++--------------+------+------+-----+---------+----------------+
+| teach_id     | int  | NO   | PRI | NULL    | auto_increment |
+| professor_id | int  | NO   | MUL | NULL    |                |
+| course_id    | int  | NO   | MUL | NULL    |                |
+| sem_id       | int  | YES  | MUL | NULL    |                |
+| year         | int  | YES  |     | NULL    |                |
++--------------+------+------+-----+---------+----------------+
+5 rows in set (0.176 sec)
+
+CREATE TABLE attendance_record (
+    ->     record_id INT AUTO_INCREMENT PRIMARY KEY,
+    ->     session_id INT NOT NULL,
+    ->     prn INT NOT NULL,
+    ->     status ENUM('Present', 'Absent') NOT NULL,
+    ->     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    ->     FOREIGN KEY (session_id) REFERENCES attendance_session(session_id) ON DELETE CASCADE,
+    ->     FOREIGN KEY (prn) REFERENCES student(prn) ON DELETE CASCADE
+    -> );
+Query OK, 0 rows affected (0.961 sec)
+
+mysql> DESC ATTENDANCE_SESSION;
++--------------+----------+------+-----+-------------------+-------------------+
+| Field        | Type     | Null | Key | Default           | Extra             |
++--------------+----------+------+-----+-------------------+-------------------+
+| session_id   | int      | NO   | PRI | NULL              | auto_increment    |
+| course_id    | int      | NO   | MUL | NULL              |                   |
+| professor_id | int      | NO   | MUL | NULL              |                   |
+| session_date | date     | NO   |     | NULL              |                   |
+| session_time | datetime | NO   |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED |
++--------------+----------+------+-----+-------------------+-------------------+
+5 rows in set (0.042 sec)

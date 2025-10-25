@@ -12,7 +12,6 @@ app.config['MYSQL_PASSWORD'] = 'root'
 app.config['MYSQL_DB'] = 'student'
 
 mysql = MySQL(app)
-
 # ---------------- LOGIN PAGE ----------------
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -51,24 +50,63 @@ def home():
     return render_template('index.html')
 
 
-# ---------------- Professor routes ----------------
 @app.route('/professor', methods=['GET', 'POST'])
 def professor():
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    cur = mysql.connection.cursor()
+    # Use DictCursor to fetch results as dictionaries (e.g., prof['name'])
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
     if request.method == 'POST':
-        search_name = request.form['search_name'].lower()
-        cur.execute("SELECT * FROM professor WHERE LOWER(name) = %s", (search_name,))
+        # Improved search: using LIKE for partial matches
+        search_name = request.form['search_name'].strip().lower()
+        search_term = '%' + search_name + '%'
+
+        cur.execute("""
+            SELECT p.professor_id, p.name, p.email, d.name AS department_name
+            FROM professor p
+            LEFT JOIN department d ON p.dep_id = d.dep_id
+            WHERE LOWER(p.name) LIKE %s
+            ORDER BY p.name
+        """, (search_term,))
     else:
-        cur.execute("SELECT * FROM professor")
+        # Fetch all professors, joining to get the department name
+        cur.execute("""
+            SELECT p.professor_id, p.name, p.email, d.name AS department_name
+            FROM professor p
+            LEFT JOIN department d ON p.dep_id = d.dep_id
+            ORDER BY p.professor_id DESC
+        """)
 
     data = cur.fetchall()
     cur.close()
     return render_template('professor.html', professors=data)
 
+@app.route('/add_professor', methods=['POST'])
+def add_professor():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    professor_id = request.form.get('professor_id')
+    name = request.form.get('name')
+    email = request.form.get('email')
+    dep_id = request.form.get('dep_id') or None  # Optional department
+
+    cur = mysql.connection.cursor()
+    try:
+        cur.execute("""
+            INSERT INTO professor (professor_id, name, email, dep_id)
+            VALUES (%s, %s, %s, %s)
+        """, (professor_id, name, email, dep_id))
+        mysql.connection.commit()
+        flash("✅ Professor added successfully!", "success")
+    except MySQLdb.IntegrityError:
+        flash("❌ Professor ID or Email already exists.", "danger")
+    finally:
+        cur.close()
+
+    return redirect(url_for('professor'))
 
 # ---------------- Department routes ----------------
 @app.route('/department', methods=['GET', 'POST'])
@@ -142,6 +180,19 @@ def add_student():
     cur.close()
     return redirect(url_for('student'))
 
+@app.route('/delete_student', methods=['POST'])
+def delete_student():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    prn = int(request.form['prn'])
+
+    cur = mysql.connection.cursor()
+    cur.callproc('DeleteStudent', [prn])
+    mysql.connection.commit()
+    cur.close()
+
+    return redirect(url_for('student'))
 
 # ---------------- Courses ----------------
 @app.route('/courses', methods=['GET', 'POST'])
@@ -238,6 +289,100 @@ def enrollment():
     enrollments = cur.fetchall()
     cur.close()
     return render_template('enrollment.html', enrollments=enrollments)
+
+@app.route('/professor_attendance/<int:professor_id>', methods=['GET', 'POST'])
+def professor_attendance(professor_id):
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    # Get professor
+    cur.execute("SELECT * FROM professor WHERE professor_id = %s", (professor_id,))
+    professor = cur.fetchone()
+    if not professor:
+        flash('Professor not found.', 'danger')
+        cur.close()
+        return redirect(url_for('home'))
+
+    # Get courses taught by professor
+    cur.execute("""
+        SELECT c.course_id, c.title
+        FROM course c
+        JOIN teaches t ON c.course_id = t.course_id
+        WHERE t.professor_id = %s
+        ORDER BY c.title
+    """, (professor_id,))
+    courses = cur.fetchall()
+
+    # ✅ Initialize search_query for both GET and POST
+    search_query = request.args.get('search', '').strip()
+
+    # Get students, filtered by Panel or PRN if search exists
+    if search_query:
+        cur.execute("""
+            SELECT s.prn, s.name, s.panel, s.branch, s.email, s.year, s.attendance_percentage
+            FROM student s
+            WHERE s.professor_id = %s
+            AND (s.panel LIKE %s OR CAST(s.prn AS CHAR) LIKE %s)
+            ORDER BY s.prn ASC
+        """, (professor_id, f"%{search_query}%", f"%{search_query}%"))
+    else:
+        cur.execute("""
+            SELECT s.prn, s.name, s.panel, s.branch, s.email, s.year, s.attendance_percentage
+            FROM student s
+            WHERE s.professor_id = %s
+            ORDER BY s.prn ASC
+        """, (professor_id,))
+    students = cur.fetchall()
+
+    # Handle POST: attendance submission
+    if request.method == 'POST':
+        attendance_date = request.form.get('attendance_date')
+        course_id = request.form.get('course_id')
+
+        if not attendance_date or not course_id:
+            flash('Please select a course and date.', 'warning')
+            cur.close()
+            return redirect(url_for('professor_attendance', professor_id=professor_id))
+
+        try:
+            # Insert new session
+            cur.execute("""
+                INSERT INTO attendance_session (course_id, professor_id, session_date, session_time)
+                VALUES (%s, %s, %s, NOW())
+            """, (course_id, professor_id, attendance_date))
+            mysql.connection.commit()
+
+            session_id = cur.lastrowid
+
+            # Insert attendance for each student
+            for s in students:
+                prn = s['prn']
+                status = 'Present' if request.form.get(f'status_{prn}') else 'Absent'
+                cur.execute("""
+                    INSERT INTO attendance_record (session_id, prn, status)
+                    VALUES (%s, %s, %s)
+                """, (session_id, prn, status))
+
+            mysql.connection.commit()
+            flash('Attendance saved successfully!', 'success')
+
+        except Exception as e:
+            mysql.connection.rollback()
+            flash(f'Error saving attendance: {e}', 'danger')
+
+        finally:
+            cur.close()
+
+        return redirect(url_for('professor_attendance', professor_id=professor_id))
+
+    cur.close()
+    return render_template('professor_attendance.html',
+                           professor=professor,
+                           students=students,
+                           courses=courses,
+                           search_query=search_query)
 
 
 # ---------------- Main ----------------

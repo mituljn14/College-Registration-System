@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mark Attendance - {{ professor.name }}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; padding-top: 80px; }
+    .container { background-color: #fff; padding: 35px; border-radius: 10px; max-width: 1000px; margin: auto; margin-bottom:50px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+    h1 { text-align:center; margin-bottom:30px; font-weight:700;}
+    table { width:100%; border-collapse:collapse; margin-top:20px;}
+    th { background-color:#000; color:#fff; padding:10px; text-align:center; }
+    td { text-align:center; padding:10px; border:1px solid #bdbdbd; }
+    input[type="checkbox"] { transform: scale(1.3); cursor:pointer; accent-color:#000; }
+    .btn-dark { background-color:#000; color:#fff; border:none; padding:10px 25px; border-radius:6px; }
+    .btn-dark:hover { background-color:#333; }
+    input[type="text"] { padding: 6px; border-radius: 5px; border: 1px solid #ccc; width: 200px; }
+  </style>
+</head>
+
+<body onload="verifyPassword({{professor.professor_id }})">
+
+
+<script>
+  // 🔐 Unique passwords for each professor
+  const professorPasswords = {
+    112: "sonali123",
+    111: "pranali123",
+    110: "tanya123",
+    109: "aditya123",
+    108: "meera123",
+    107: "karan123",
+    106: "priya123",
+    105: "vikram123",
+    104: "anjali123",
+    103: "rajesh123",
+    102: "neha123",
+    101: "amit123"
+  };
+
+  function verifyPassword(professorId) {
+    const correctPassword = professorPasswords[professorId];
+    if (!correctPassword) return; // if not found, skip
+
+    const entered = prompt("Enter password for Professor ID " + professorId + ":");
+    if (entered !== correctPassword) {
+      alert("❌ Access denied! Incorrect password.");
+      window.location.href = "/professor"; // redirect if wrong
+    }
+  }
+</script>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+  <div class="container-fluid">
+    <a class="navbar-brand d-flex align-items-center" href="/">
+      <img src="{{ url_for('static', filename='logo.jpg') }}" alt="Logo" style="height: 40px; margin-right: 10px;">
+      MIT-WPU REGISTRATION
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="/home">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link active" href="/student">Students</a></li>
+        <li class="nav-item"><a class="nav-link" href="/courses">Courses</a></li>
+        <li class="nav-item"><a class="nav-link" href="/professor">Professors</a></li>
+        <li class="nav-item"><a class="nav-link" href="/department">Departments</a></li>
+        <li class="nav-item"><a class="nav-link" href="/enrollments">Enrollments</a></li>
+        <li class="nav-item"><a class="nav-link" href="/semester">Semesters</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Main Container -->
+<div class="container">
+  <h1>Mark Attendance - {{ professor.name }}</h1>
+
+  <!-- Search Panel -->
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <form method="GET" action="{{ url_for('professor_attendance', professor_id=professor.professor_id) }}">
+        <input type="text" name="search" placeholder="Search by Panel or PRN" value="{{ search_query }}">
+        <button type="submit" class="btn btn-dark btn-sm">Search</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Attendance Form -->
+  <form method="POST" action="{{ url_for('professor_attendance', professor_id=professor.professor_id) }}">
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label for="attendance_date">Select Date:</label>
+        <input type="date" id="attendance_date" name="attendance_date" required>
+      </div>
+      <div class="col-md-6">
+        <label for="course_id">Select Course:</label>
+        <select name="course_id" id="course_id" required>
+          {% for course in courses %}
+          <option value="{{ course.course_id }}">{{ course.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <table class="table table-bordered table-hover">
+      <thead>
+        <tr>
+          <th>PRN</th>
+          <th>Name</th>
+          <th>Panel</th>
+          <th>Mark Present</th>
+          <th>Attendance %</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for student in students %}
+        <tr>
+          <td>{{ student.prn }}</td>
+          <td>{{ student.name }}</td>
+          <td>{{ student.panel }}</td>
+          <td>
+            <input type="checkbox" name="status_{{ student.prn }}" value="Present">
+          </td>
+          <td>
+            {% if student.attendance_percentage is defined and student.attendance_percentage is not none %}
+              {{ student.attendance_percentage|round(2, 'common') }}%
+            {% else %}
+              0%
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="text-center mt-3">
+      <button type="submit" class="btn btn-dark">Submit Attendance</button>
+    </div>
+  </form>
+</div>
+
+<footer class="text-center py-3 bg-dark text-white">
+  © 2025 MIT-WPU | All Rights Reserved
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
